@@ -52,6 +52,7 @@ classdef MyProjectToolBoxApp_exported < matlab.apps.AppBase
                 if strcmp(selectedScript, 'No matches found') % Ignore if "No matches found"
                     return;
                 end
+                app.SearchList.Value = {};
                 app.SearchList.Visible = 'off';
                 UserClicked(app, selectedScript); % Function
         end
