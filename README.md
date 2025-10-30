@@ -10,6 +10,8 @@
 
 MATLAB Scripts App is a **ready-to-use template** that helps you organize and execute your MATLAB scripts through a clean GUI interface. Start with an empty framework and populate it with your own scripts!
 
+![Project Toolbox Interface](AppScreenshot.png)
+
 ---
 
 ## ✨ Features
