@@ -32,38 +32,35 @@ MATLAB Scripts App is a **ready-to-use template** that helps you organize and ex
 ### File Structure
 ```
 matlab-scripts-app/
-├── MATLABScriptsApp.m
+├── MATLABScriptsApp.mlapp
+├── MATLABScriptsApp_exported.m
 ├── scripts_registry.xlsx
 └── Figures/
-    ├── AppIcon.png
+    ├── AppIcons Dir
     └── [your thumbnails]
 ```
 
 ### Setup Steps
 
 1. **Add your scripts to `scripts_registry.xlsx`:**
+   - Click **"+ Add"** button (opens Excel)
+   - Add row: ScriptName | Path | About
+   - Save and restart App
 
-   | ScriptName | Path | About |
-   |------------|------|-------|
-   | MyScript | C:\Scripts\script.m | Script description |
-
-2. **Add thumbnails (optional):**
-   - Create `ScriptName.png` images
+3. **Add thumbnails (optional):**
+   - Create `ScriptName.png` image
    - Place in `Figures/` folder
+   - Open MATLABScriptsApp.mlapp and put there Image and label in the grid
+   - Right Click on the image -> callback -> ImageClicked
 
-3. **Launch:**
+4. **Launch:**
    ```matlab
-   MATLABScriptsApp
+   MATLABScriptsApp_exported.m
    ```
 
 ---
 
 ## 📖 Usage
-
-### Adding Scripts
-1. Click **"+ Add"** button (opens Excel)
-2. Add row: ScriptName | Path | About
-3. Save and restart app
 
 ### Running Scripts
 1. Select action: **Run** / **Open** / **About**
