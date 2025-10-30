@@ -2,29 +2,30 @@ classdef MyProjectToolBoxApp_exported < matlab.apps.AppBase
 
     % Properties that correspond to app components
     properties (Access = public)
-        UIFigure             matlab.ui.Figure
-        AddButton            matlab.ui.control.Button
-        Panel_2              matlab.ui.container.Panel
+        UIFigure               matlab.ui.Figure
+        SearchTable            matlab.ui.control.Table
+        AddButton              matlab.ui.control.Button
+        Panel_2                matlab.ui.container.Panel
         ComprehensiveMATLABScriptsCollectionLabel  matlab.ui.control.Label
-        ProjectToolboxLabel  matlab.ui.control.Label
-        HelpButton           matlab.ui.control.Button
-        Panel                matlab.ui.container.Panel
+        ProjectToolboxLabel    matlab.ui.control.Label
+        HelpButton             matlab.ui.control.Button
+        Panel                  matlab.ui.container.Panel
         ProjectToolboxv10ClickthumbnailstorunapplicationsLabel  matlab.ui.control.Label
-        StatsLabel           matlab.ui.control.Label
-        ActionLabel          matlab.ui.control.Label
-        Image3               matlab.ui.control.Image
-        EscapeButton         matlab.ui.control.Image
-        SearchList           matlab.ui.control.ListBox
-        SearchEditField      matlab.ui.control.EditField
-        RunOpenAbout         matlab.ui.control.DropDown
-        TabGroup             matlab.ui.container.TabGroup
-        AllScriptsTab        matlab.ui.container.Tab
-        GridLayout           matlab.ui.container.GridLayout
-        Image                matlab.ui.control.Image
-        ExampleLabel         matlab.ui.control.Label
-        ImportantTab         matlab.ui.container.Tab
-        GridLayout_2         matlab.ui.container.GridLayout
-        OthersTab_2          matlab.ui.container.Tab
+        StatsLabel             matlab.ui.control.Label
+        ActionLabel            matlab.ui.control.Label
+        Image3                 matlab.ui.control.Image
+        EscapeButton           matlab.ui.control.Image
+        SearchEditField        matlab.ui.control.EditField
+        RunOpenAbout           matlab.ui.control.DropDown
+        TabGroup               matlab.ui.container.TabGroup
+        MainScriptsTab         matlab.ui.container.Tab
+        GridLayout             matlab.ui.container.GridLayout
+        Image4                 matlab.ui.control.Image
+        ExampleLabel           matlab.ui.control.Label
+        Image                  matlab.ui.control.Image
+        ProjectToolboxLabel_2  matlab.ui.control.Label
+        OthersTab              matlab.ui.container.Tab
+        GridLayout_2           matlab.ui.container.GridLayout
     end
 
     properties (Access = public)
@@ -40,32 +41,24 @@ classdef MyProjectToolBoxApp_exported < matlab.apps.AppBase
             app.StatsLabel.Text = sprintf('📊 %d Scripts Available', height(app.scripts_registry)); % Update stats
         end
 
-        % Image clicked function: Image
+        % Image clicked function: Image, Image4
         function ImageClicked(app, event)
                 [~, selectedScript , ~] = fileparts(event.Source.ImageSource);
                 UserClicked(app, selectedScript); % Function
         end
 
-        % Value changed function: SearchList
-        function SearchResultClicked(app, event)
-                selectedScript = app.SearchList.Value;
-                if strcmp(selectedScript, 'No matches found') % Ignore if "No matches found"
-                    return;
-                end
-                app.SearchList.Value = {};
-                app.SearchList.Visible = 'off';
-                UserClicked(app, selectedScript); % Function
-        end
-
-        % Button pushed function: HelpButton
-        function Help(app, event)
-            helpText = sprintf(['Welcome to the Project Toolbox!\n\n' ...
-                '• Use the search bar to find scripts quickly\n' ...
-                '• Select "Run" to execute a script\n' ...
-                '• Select "Open" to edit the script\n' ...
-                '• Select "About" to read script description\n\n' ...
-                'Click on any figure to run script.']);
-            uialert(app.UIFigure, helpText, 'Help', 'Icon', 'info');            
+        % Cell selection callback: SearchTable
+        function SearchTableClicked(app, event)
+            row = event.Indices(1, 1); % Get the selected row
+            selectedScript = app.SearchTable.Data{row, 1}; % Get the script name
+            
+            if strcmp(selectedScript, 'No matches found') % if "No matches found" was selected
+                return
+            end
+            
+            app.SearchTable.Data = {};
+            app.SearchTable.Visible = 'off';
+            UserClicked(app, selectedScript); % Funcion
         end
 
         % Value changing function: SearchEditField
@@ -74,21 +67,22 @@ classdef MyProjectToolBoxApp_exported < matlab.apps.AppBase
             if isempty(selectedScript) && strcmp(app.EscapeButton.Visible, 'off') % To fix an appdesigner bug
                 return
             end
-            matches = contains(app.scripts_registry.ScriptName, selectedScript, 'IgnoreCase', true);
+            matches = contains(app.scripts_registry.ScriptName, selectedScript, 'IgnoreCase', true) | ...
+                      contains(app.scripts_registry.Category, selectedScript, 'IgnoreCase', true);
             FilteredResults = app.scripts_registry(matches, :);
             if height(FilteredResults) == 0
-                app.SearchList.Items = {'No matches found'}; % If no matches
+                app.SearchTable.Data = {'No matches found', ''};
             else
-                app.SearchList.Items = FilteredResults.ScriptName; % Update SearchList with results
+                app.SearchTable.Data = [FilteredResults.ScriptName, FilteredResults.Category]; % Update Table with results
             end
-            app.SearchList.Visible = 'on';
+            app.SearchTable.Visible = 'on';
             app.EscapeButton.Visible = 'on';
         end
 
         % Image clicked function: EscapeButton
         function EscapeButtonClicked(app, event)
             app.SearchEditField.Value = '';
-            app.SearchList.Visible = 'off';
+            app.SearchTable.Visible = 'off';
             app.EscapeButton.Visible = 'off';
         end
 
@@ -111,6 +105,17 @@ classdef MyProjectToolBoxApp_exported < matlab.apps.AppBase
             uialert(app.UIFigure, msg, '📝 Edit Registry', 'Icon', 'info');
             disp('5');
         end
+
+        % Button pushed function: HelpButton
+        function Help(app, event)
+            helpText = sprintf(['Welcome to the Project Toolbox!\n\n' ...
+                '• Use the search bar to find scripts quickly\n' ...
+                '• Select "Run" to execute a script\n' ...
+                '• Select "Open" to edit the script\n' ...
+                '• Select "About" to read script description\n\n' ...
+                'Click on any figure to run script.']);
+            uialert(app.UIFigure, helpText, 'Help', 'Icon', 'info');            
+        end
     end
 
     % Component initialization
@@ -132,14 +137,30 @@ classdef MyProjectToolBoxApp_exported < matlab.apps.AppBase
             app.TabGroup = uitabgroup(app.UIFigure);
             app.TabGroup.Position = [13 44 529 409];
 
-            % Create AllScriptsTab
-            app.AllScriptsTab = uitab(app.TabGroup);
-            app.AllScriptsTab.Title = '📚 All Scripts';
+            % Create MainScriptsTab
+            app.MainScriptsTab = uitab(app.TabGroup);
+            app.MainScriptsTab.Title = '📚 Main Scripts';
 
             % Create GridLayout
-            app.GridLayout = uigridlayout(app.AllScriptsTab);
+            app.GridLayout = uigridlayout(app.MainScriptsTab);
             app.GridLayout.ColumnWidth = {'1x', '1x', '1x', '1x'};
             app.GridLayout.RowHeight = {'1x', '3x', '1x', '3x', '1x', '3x', '1x', '3x'};
+
+            % Create ProjectToolboxLabel_2
+            app.ProjectToolboxLabel_2 = uilabel(app.GridLayout);
+            app.ProjectToolboxLabel_2.HorizontalAlignment = 'center';
+            app.ProjectToolboxLabel_2.VerticalAlignment = 'bottom';
+            app.ProjectToolboxLabel_2.FontWeight = 'bold';
+            app.ProjectToolboxLabel_2.Layout.Row = 1;
+            app.ProjectToolboxLabel_2.Layout.Column = 1;
+            app.ProjectToolboxLabel_2.Text = 'ProjectToolbox';
+
+            % Create Image
+            app.Image = uiimage(app.GridLayout);
+            app.Image.ImageClickedFcn = createCallbackFcn(app, @ImageClicked, true);
+            app.Image.Layout.Row = 2;
+            app.Image.Layout.Column = 1;
+            app.Image.ImageSource = fullfile(pathToMLAPP, 'Figures', 'Project Toolbox.png');
 
             % Create ExampleLabel
             app.ExampleLabel = uilabel(app.GridLayout);
@@ -147,28 +168,24 @@ classdef MyProjectToolBoxApp_exported < matlab.apps.AppBase
             app.ExampleLabel.VerticalAlignment = 'bottom';
             app.ExampleLabel.FontWeight = 'bold';
             app.ExampleLabel.Layout.Row = 1;
-            app.ExampleLabel.Layout.Column = 1;
+            app.ExampleLabel.Layout.Column = 2;
             app.ExampleLabel.Text = 'Example';
 
-            % Create Image
-            app.Image = uiimage(app.GridLayout);
-            app.Image.ImageClickedFcn = createCallbackFcn(app, @ImageClicked, true);
-            app.Image.Layout.Row = 2;
-            app.Image.Layout.Column = 1;
-            app.Image.ImageSource = fullfile(pathToMLAPP, 'Figures', 'Example.png');
+            % Create Image4
+            app.Image4 = uiimage(app.GridLayout);
+            app.Image4.ImageClickedFcn = createCallbackFcn(app, @ImageClicked, true);
+            app.Image4.Layout.Row = 2;
+            app.Image4.Layout.Column = 2;
+            app.Image4.ImageSource = fullfile(pathToMLAPP, 'Figures', 'Example.png');
 
-            % Create ImportantTab
-            app.ImportantTab = uitab(app.TabGroup);
-            app.ImportantTab.Title = '⭐ Important';
+            % Create OthersTab
+            app.OthersTab = uitab(app.TabGroup);
+            app.OthersTab.Title = '📁 Others';
 
             % Create GridLayout_2
-            app.GridLayout_2 = uigridlayout(app.ImportantTab);
+            app.GridLayout_2 = uigridlayout(app.OthersTab);
             app.GridLayout_2.ColumnWidth = {'1x', '1x', '1x', '1x'};
             app.GridLayout_2.RowHeight = {'1x', '3x', '1x', '3x', '1x', '3x', '1x', '3x'};
-
-            % Create OthersTab_2
-            app.OthersTab_2 = uitab(app.TabGroup);
-            app.OthersTab_2.Title = '📁 Others';
 
             % Create RunOpenAbout
             app.RunOpenAbout = uidropdown(app.UIFigure);
@@ -177,24 +194,13 @@ classdef MyProjectToolBoxApp_exported < matlab.apps.AppBase
             app.RunOpenAbout.FontWeight = 'bold';
             app.RunOpenAbout.FontColor = [0 0.4471 0.7412];
             app.RunOpenAbout.BackgroundColor = [1 1 1];
-            app.RunOpenAbout.Position = [69 467 83 22];
+            app.RunOpenAbout.Position = [65 467 83 22];
             app.RunOpenAbout.Value = 'Run';
 
             % Create SearchEditField
             app.SearchEditField = uieditfield(app.UIFigure, 'text');
             app.SearchEditField.ValueChangingFcn = createCallbackFcn(app, @SearchEditFieldValueChanging, true);
-            app.SearchEditField.Position = [221 467 260 22];
-
-            % Create SearchList
-            app.SearchList = uilistbox(app.UIFigure);
-            app.SearchList.Items = {};
-            app.SearchList.ValueChangedFcn = createCallbackFcn(app, @SearchResultClicked, true);
-            app.SearchList.Visible = 'off';
-            app.SearchList.FontWeight = 'bold';
-            app.SearchList.FontAngle = 'italic';
-            app.SearchList.FontColor = [0 0.4471 0.7412];
-            app.SearchList.Position = [222 286 259 180];
-            app.SearchList.Value = {};
+            app.SearchEditField.Position = [205 467 276 22];
 
             % Create EscapeButton
             app.EscapeButton = uiimage(app.UIFigure);
@@ -205,7 +211,7 @@ classdef MyProjectToolBoxApp_exported < matlab.apps.AppBase
 
             % Create Image3
             app.Image3 = uiimage(app.UIFigure);
-            app.Image3.Position = [198 468 18 21];
+            app.Image3.Position = [182 468 18 21];
             app.Image3.ImageSource = fullfile(pathToMLAPP, 'Figures', 'AppSymbols', 'icons8-search-48.png');
 
             % Create ActionLabel
@@ -271,6 +277,19 @@ classdef MyProjectToolBoxApp_exported < matlab.apps.AppBase
             app.AddButton.FontColor = [1 1 1];
             app.AddButton.Position = [493 467 48 23];
             app.AddButton.Text = '+ Add';
+
+            % Create SearchTable
+            app.SearchTable = uitable(app.UIFigure);
+            app.SearchTable.ColumnName = '';
+            app.SearchTable.RowName = {};
+            app.SearchTable.SelectionType = 'row';
+            app.SearchTable.CellSelectionCallback = createCallbackFcn(app, @SearchTableClicked, true);
+            app.SearchTable.Multiselect = 'off';
+            app.SearchTable.ForegroundColor = [0 0.4471 0.7412];
+            app.SearchTable.Visible = 'off';
+            app.SearchTable.FontAngle = 'italic';
+            app.SearchTable.FontWeight = 'bold';
+            app.SearchTable.Position = [205 283 276 185];
 
             % Show the figure after all components are created
             app.UIFigure.Visible = 'on';
